@@ -1,7 +1,5 @@
-/*      $Id: methlistcompile.c,v 1.10 2005/09/05 21:26:14 br Exp $ */
-
 /*
- * Copyright (c) 2004-2005 Bruno Rohée
+ * Copyright (c) 2004-2012 Bruno Rohée <bruno@rohee.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +28,8 @@
  *
  */
 
+#define _XOPEN_SOURCE 500
+
 #include <assert.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -56,22 +56,24 @@ int complexRangeCount = 0;
 #endif
 
 /*
- * methlabs.org provides at http://methlabs.org/sync/ some address lists
- * in the format
+ * methlabs.org used to provide at http://methlabs.org/sync/ some address lists
+ * in the following multi line format
  *
  * Some random junk:aaa.bbb.ccc.ddd-eee.fff.ggg.hhh
  *
  * where aaa.bbb.ccc.ddd-eee.fff.ggg.hhh represents a continuous range of
- * IP addresses. Those range are not always a CIDR network so we may have
- * to split it in a set of netmaskable entities.
+ * IPv4 addresses. Those ranges are not always a CIDR network so we may have
+ * to split them  in a set of netmaskable entities. Also both ends of those
+ * ranges may be identical, thus describing a single address.
  *
  * We convert that to a list of ipaddress/netmask, one per line,
  * suitable to use with OpenBSD's pfctl and doubtless other packages.
  *
  * This tool is written in a very portable way so should compile
- * and work on any system having an ANSI C compiler.
+ * and work on any system having an C89 compiler (and a strdup()
+ * implementation).
  *
- * Comments on that quickly made code at <bruno+antispyware@rohee.com>.
+ * Comments may be sent to me at <bruno@rohee.org>.
  */
 int main(int argc, char **argv) {
   FILE *in;
@@ -164,7 +166,7 @@ void outputRange(const char * buf, FILE * out) {
   secondHalf = strchr(buf, '-') + 1; /* find the beginning of end of range */
 
   if(!secondHalf)
-    return; /* could not local the '-', not something we expect */
+    return; /* could not locate the '-', that's unexpected, so we skip */
 
   firstHalfLen = secondHalf - buf - 1;
 
@@ -197,7 +199,7 @@ void outputRange(const char * buf, FILE * out) {
  * notation separated by \n, with an \n after the last one.
  */
 char *rangeToNetworks(const char *begin, const char *end) {
-  /* at worse 62 networks in a range, but then two of them would
+  /* worst case is 62 networks in a range, but then two of them would
      be single hosts so this buffer is adequately sized */
   char * result = malloc(sizeof "xxx.xxx.xxx.xxx/yy" * 62);
   u_int32_t beginAddr = 0;
@@ -356,7 +358,7 @@ u_int32_t maskFromLength(int length) {
 
 /*
  * Put a formated string representing the network
- * described by addr and maskLen.
+ * described by addr and maskLen in buf. 
  *
  * Returns the length of the string contained in buf after formatting.
  */
