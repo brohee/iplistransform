@@ -2,7 +2,7 @@ iplistransform
 ==============
 
 The command takes as input address lists in the PeerGuardian P2P plaintext
-format (see https://en.wikipedia.org/wiki/PeerGuardian#P2P plaintext format),
+format (see https://en.wikipedia.org/wiki/PeerGuardian#P2P%20plaintext%20format),
 where each line is in the following format 
 
 RangeName:aaa.bbb.ccc.ddd-eee.fff.ggg.hhh
