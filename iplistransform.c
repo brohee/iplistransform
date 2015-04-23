@@ -132,6 +132,9 @@ void convert(FILE *in, FILE *out) {
       }
     } else {
       if(currentChar == '\r' || currentChar == '\n') {
+#ifdef GATHER_STATS
+	lineCount++;
+#endif
 	assert(lineBufCount > 1);
 	savedLine[lineBufCount - 1] = '\0';
 	lineBufCount = 0;
